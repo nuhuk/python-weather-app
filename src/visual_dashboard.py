@@ -72,16 +72,13 @@ class WeatherDashboard:
 
 
 def main():
-    # Initialize WeatherDashboard
+
     dashboard = WeatherDashboard()
 
-    # Create bucket if needed
     dashboard.create_bucket_if_not_exists()
 
-    # List of cities to fetch weather data for
     cities = ["Philadelphia", "Seattle", "New York"]
 
-    # Title and Header in Streamlit
     st.title("Weathercast")
     st.header("Know the weather right here, right now!")
     st.markdown("By Nuhu Kanga Ali")
@@ -92,10 +89,8 @@ def main():
     st.markdown("The weather temperature is measured in Fahrenheit at a range from 0 to 100 degrees.")
     st.divider()
 
-    # Initialize a list to store weather data
     weather_summary = []
 
-    # Fetch and display weather data for each city
     for city in cities:
         st.subheader(f"Weather in {city}")
         weather_data = dashboard.fetch_weather(city)
@@ -112,7 +107,6 @@ def main():
             cols3.metric(label="Humidity (%)", value=f"{humidity}%")
             st.text(f"Conditions: {description.capitalize()}")
 
-            # Add data to summary for additional visualization (if needed)
             weather_summary.append({
                 "City": city,
                 "Temperature": temp,
@@ -126,7 +120,6 @@ def main():
             st.error(f"Failed to fetch weather data for {city}")
         st.divider()
 
-    # Display summary as a table if multiple cities
     if weather_summary:
         st.subheader("Summary of Weather Data")
         df = pd.DataFrame(weather_summary)
