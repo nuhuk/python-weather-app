@@ -4,6 +4,8 @@ import boto3
 import requests
 from datetime import datetime
 from dotenv import load_dotenv
+import streamlit as st
+import pandas as pd
 
 # Load environment variables
 load_dotenv()
@@ -70,15 +72,32 @@ class WeatherDashboard:
 
 
 def main():
+    # Initialize WeatherDashboard
     dashboard = WeatherDashboard()
 
     # Create bucket if needed
     dashboard.create_bucket_if_not_exists()
 
+    # List of cities to fetch weather data for
     cities = ["Philadelphia", "Seattle", "New York"]
 
+    # Title and Header in Streamlit
+    st.title("Weathercast")
+    st.header("Know the weather right here, right now!")
+    st.markdown("By Nuhu Kanga Ali")
+    st.markdown("\n")
+    st.divider()
+    st.markdown("This weather app is built on the basis of the DevOps Challenge brought by the Cozy Cloud Crew.")
+    st.markdown("Below, you'll see visuals for the distribution of the weather temperatures at different states.")
+    st.markdown("The weather temperature is measured in Fahrenheit at a range from 0 to 100 degrees.")
+    st.divider()
+
+    # Initialize a list to store weather data
+    weather_summary = []
+
+    # Fetch and display weather data for each city
     for city in cities:
-        print(f"\nFetching weather for {city}...")
+        st.subheader(f"Weather in {city}")
         weather_data = dashboard.fetch_weather(city)
         if weather_data:
             temp = weather_data['main']['temp']
@@ -86,17 +105,34 @@ def main():
             humidity = weather_data['main']['humidity']
             description = weather_data['weather'][0]['description']
 
-            print(f"Temperature: {temp}°F")
-            print(f"Feels like: {feels_like}°F")
-            print(f"Humidity: {humidity}%")
-            print(f"Conditions: {description}")
+            # Display data in Streamlit
+            cols1, cols2, cols3 = st.columns(3)
+            cols1.metric(label="Temperature (°F)", value=f"{temp:.1f}")
+            cols2.metric(label="Feels Like (°F)", value=f"{feels_like:.1f}")
+            cols3.metric(label="Humidity (%)", value=f"{humidity}%")
+            st.text(f"Conditions: {description.capitalize()}")
 
-            # Save to S3
-            success = dashboard.save_to_s3(weather_data, city)
-            if success:
-                print(f"Weather data for {city} saved to S3!")
+            # Add data to summary for additional visualization (if needed)
+            weather_summary.append({
+                "City": city,
+                "Temperature": temp,
+                "Feels Like": feels_like,
+                "Humidity": humidity,
+                "Conditions": description.capitalize()
+            })
+
+
         else:
-            print(f"Failed to fetch weather data for {city}")
+            st.error(f"Failed to fetch weather data for {city}")
+        st.divider()
+
+    # Display summary as a table if multiple cities
+    if weather_summary:
+        st.subheader("Summary of Weather Data")
+        df = pd.DataFrame(weather_summary)
+        st.dataframe(df)
+
+
 
 
 if __name__ == "__main__":
